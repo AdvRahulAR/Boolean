@@ -1,0 +1,141 @@
+
+# Project Report: Boolean Legal AI Assistant
+
+## 1. Application Overview
+
+**Name:** Boolean Legal AI Assistant
+
+**Purpose:**
+The Boolean Legal AI Assistant is a sophisticated web application designed to provide AI-powered legal support. As described in its metadata, it assists with various legal domains pertinent to Boolean Legal, including venture capital, M&A, regulatory guidance, intellectual property, virtual general counsel services, and legal tech solutions. The application aims to deliver accurate, context-aware legal information by leveraging the Google Gemini API, including its web search capabilities.
+
+**Core Functionality:**
+The application operates as a chat-based AI assistant. Users can:
+- Engage in conversational queries with an AI.
+- Specify a "Service Area" (e.g., Venture Capital, Intellectual Property) and a "Legal Task" (e.g., General Legal Q&A, Draft Document) to provide context for their queries.
+- Upload various document types (PDFs, Word documents, text files, images) for the AI to analyze in conjunction with their queries.
+- Receive AI-generated responses, which can include formatted text and links to web sources if web search is utilized.
+- Manage chat history, including loading, renaming, and deleting past conversations.
+- Toggle a web search feature to allow the AI to ground its responses with up-to-date information from the internet.
+
+## 2. Technology Stack
+
+**Frontend:**
+*   **Framework/Library:** React (v19.1.0) with TypeScript.
+*   **Language:** TypeScript.
+*   **Styling:** Tailwind CSS (via CDN) for utility-first styling, augmented with custom CSS in `index.html` for global styles (e.g., scrollbars, background pattern, prose enhancements).
+*   **Module System:** ES Modules (ESM) loaded via import maps in `index.html`, primarily using `esm.sh` as a CDN for dependencies.
+*   **State Management:** Primarily uses React's built-in hooks (`useState`, `useCallback`, `useEffect`). No external global state management library (like Redux or Zustand) is apparent.
+
+**AI Integration:**
+*   **AI Service:** Google Gemini API (`@google/genai` library, v1.0.0).
+*   **Model(s):**
+    *   Text Generation: `gemini-2.5-flash-preview-04-17`.
+    *   Image Analysis: Accepts image inputs which are processed and sent to the text model.
+    *   (Note: `imagen-3.0-generate-002` is mentioned in `constants.ts` for image generation, but this feature is not actively implemented in the UI for outputting generated images, only for processing uploaded images as input).
+
+**Data Handling & Processing:**
+*   **Document Processing:**
+    *   `pdfjs-dist` (v4.4.168): Used for client-side PDF parsing to extract text content. If text extraction yields low content (heuristic-based), PDF pages (up to 5) are rendered as images (PNG) to be sent to Gemini, likely for OCR/analysis capabilities.
+    *   Native File API: For reading text files, Word documents (as base64 data URLs), and images (as base64 data URLs).
+*   **Markdown Rendering:** `marked` (v13.0.2) library to parse and display AI-generated responses in HTML format, supporting rich text like lists, code blocks, etc.
+*   **Local Storage:** Browser's `localStorage` API is used for persisting chat sessions (via `localStorageService.ts`).
+
+**Utilities & Build:**
+*   **PDF Worker:** Configured to use `pdfjs-dist/build/pdf.worker.js` via import maps.
+*   **Unique ID Generation:** `crypto.randomUUID` or a Math.random fallback.
+
+## 3. Key Features
+
+**3.1. AI Chat Interaction:**
+*   **Conversational Interface:** Users interact with the AI through a chat window, typing queries into a dynamically resizing textarea.
+*   **Formatted Responses:** AI responses are displayed in chat bubbles, with Markdown support for rich formatting (headings, lists, bold/italics, code blocks).
+*   **System Messages:** Context changes (like updating Service Area or Legal Task) are communicated within the chat flow as system messages.
+
+**3.2. Contextual Querying:**
+*   **Service Area Selection:** Dropdown menu allows users to select a specific legal service area (e.g., "Venture Capital & Startup Advisory", "Intellectual Property").
+*   **Legal Task Selection:** Another dropdown allows users to specify the type of legal task (e.g., "General Legal Q&A", "Draft Document / Clause").
+*   **Contextual Prompts:** The selected service area and legal task are incorporated into the prompts sent to the Gemini API, guiding the AI's responses.
+
+**3.3. Document Upload & Processing:**
+*   **Supported File Types:**
+    *   PDF (`.pdf`)
+    *   Text (`.txt`, `.md`)
+    *   Word Documents (`.doc`, `.docx`) - processed as base64.
+    *   Images (`.jpeg`, `.png`, `.webp`, `.gif`, `.heic`, `.heif`) - processed as base64.
+*   **File Limits:** Up to 5 files per query, each not exceeding 10MB.
+*   **Processing Logic:**
+    *   PDFs: Text is extracted. If text quantity is low, pages are converted to images for Gemini to analyze. Password-protected or corrupted PDFs generate errors.
+    *   Images/Word Docs: Converted to base64 data URLs.
+    *   Text files: Content read as plain text.
+*   **UI Feedback:** Users see the status of uploaded files (processing, processed, error with message) and can remove them.
+*   **AI Integration:** Processed file content (text or base64 data) is sent to the Gemini API along with the user's query.
+
+**3.4. Gemini API Integration & Web Search:**
+*   **Multi-Turn Conversations:** Chat history is included in API requests to maintain conversational context.
+*   **System Instructions:** A base system instruction, along with the current service area and task, guides the AI's persona and response style.
+*   **Google Search Grounding:**
+    *   A UI toggle allows users to enable/disable web search for the AI.
+    *   If enabled, the `googleSearch` tool is added to the Gemini API request.
+    *   Web search sources (`groundingChunks` from the API response) are displayed beneath the AI's message, with links to the original URLs.
+*   **Error Handling:** The application includes logic to handle API errors and responses blocked by Gemini (e.g., due to safety filters or invalid input).
+*   **Conditional API Parameters:** API parameters like temperature, topP, and topK are adjusted based on whether web search is enabled (omitted when search is on, as per Gemini guidelines).
+
+**3.5. Chat History Management:**
+*   **Local Persistence:** Chat sessions (including messages, title, timestamps, initial context) are saved in the browser's local storage.
+*   **Sidebar Panel:** A collapsible sidebar displays a list of saved chat sessions, sorted by the last update time.
+*   **Session Operations:** Users can:
+    *   Load a previous chat session.
+    *   Start a new chat.
+    *   Rename existing chat sessions.
+    *   Delete chat sessions (with a confirmation prompt).
+*   **Context Restoration:** When a chat is loaded, its initial Service Area and Legal Task are restored.
+
+**3.6. User Interface (UI) & User Experience (UX):**
+*   **Responsive Design:** The UI adapts to different screen sizes using Tailwind CSS.
+*   **Visual Theme:** Dark theme with red accents, incorporating a subtle geometric background pattern.
+*   **Loading States:** Visual cues like spinners and text messages ("AI is thinking...", "AI is processing your request...") indicate when the application is busy.
+*   **Error Display:** Errors (e.g., API failures, file processing issues) are shown in a distinct error message component.
+*   **Welcome Message:** A prominent welcome message is displayed when no chat is active.
+*   **Dynamic Textarea:** The query input textarea automatically adjusts its height based on content, up to a defined maximum.
+*   **Feedback Mechanism:** AI messages have options for users to give quick feedback (👍/👎) and access a "More" option for detailed feedback (category selection and comment). Currently, feedback submission logs to the console and shows an alert.
+*   **Animations:** Subtle animations (fade-in, slide-up, scale-up, pulse) are used to enhance UI interactions.
+*   **Custom Scrollbars:** Styled scrollbars for a consistent look in Webkit browsers.
+
+**3.7. Suggested Prompts:**
+*   **Dynamic Suggestions:** As the user types in the query input, a list of relevant suggested prompts appears above the input bar.
+*   **Contextual Relevance:** Suggestions are filtered based on the currently selected "Service Area" and the text typed by the user.
+*   **Keyboard Navigation:** Users can navigate the suggestions using arrow keys and select one with Enter, or dismiss them with Escape.
+*   **Source of Prompts:** Pre-defined prompts are stored in `services/suggestedPrompts.ts`, categorized by `ServiceArea`.
+
+## 4. Multilingual Capabilities
+
+**Current Status:**
+The Boolean Legal AI Assistant is currently **monolingual (English only)**.
+
+**Analysis:**
+*   **UI Elements:** All user interface text (labels, button text, messages, placeholders, dropdown options) is hardcoded in English.
+*   **AI Prompts:** System instructions and the construction of user queries sent to the Gemini API are in English.
+*   **Suggested Prompts:** The extensive list of suggested prompts is entirely in English.
+*   **Data Content:** While users could theoretically input queries or upload documents in other languages, the application's framework and AI guidance are English-centric. The Gemini API itself might handle multiple languages, but the application does not explicitly support or manage this.
+*   **No i18n Framework:** There is no evidence of internationalization (i18n) libraries (e.g., `react-i18next`, `FormatJS/react-intl`) or localization (l10n) mechanisms being used.
+
+**Conclusion on Multilingual Capabilities:**
+To make the application multilingual, significant development effort would be required. This would include:
+*   Implementing an i18n library.
+*   Extracting all UI strings into resource files for translation.
+*   Translating all UI content and suggested prompts.
+*   Potentially adapting AI prompt engineering to consider user language preference or input language, and instructing Gemini accordingly if language-specific output is desired.
+
+## 5. Observations & Potential Enhancements
+
+*   **Mock Web Search Service:** The file `services/webSearchService.ts` contains a `mockFetchLegalInfo` function. Comments in `App.tsx` and the current implementation of web search (via Gemini's `googleSearch` tool) suggest this mock service is a remnant of a previous design and not actively used for the primary web search functionality. The `webContext` field in `QueryPayload` may be related to this older approach.
+*   **Image Generation:** While the application processes uploaded images for analysis by the AI, `constants.ts` mentions `GEMINI_IMAGE_MODEL = "imagen-3.0-generate-002"` with a comment "// If image generation becomes a feature". This suggests that AI-powered image *generation* (as opposed to image input/analysis) was considered or could be a future feature, but is not currently implemented in the UI.
+*   **Feedback System:** The detailed feedback form for AI responses currently logs data to the console and shows a basic alert. A backend integration would be needed to store and utilize this feedback effectively.
+*   **PDF OCR Heuristic:** The decision to convert PDF pages to images for OCR (if text content is low) is based on a heuristic (chars per page). This is a practical approach for client-side processing.
+*   **Robustness:** The application demonstrates considerations for error handling, loading states, and user feedback, contributing to a more robust user experience.
+*   **Offline Functionality:** While chat history is stored locally (allowing access to past chats offline), the core AI interaction requires an internet connection to reach the Gemini API. True offline AI functionality is not a feature.
+*   **Accessibility (ARIA):** Some ARIA attributes are present (e.g., `aria-label`, `aria-expanded`, `aria-controls`, `aria-hidden`, `aria-pressed`, `aria-autocomplete`, `role="alert"`), indicating an awareness of accessibility. Further review would be needed for comprehensive A11y compliance.
+
+---
+End of Report
+---

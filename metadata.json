@@ -1,0 +1,6 @@
+{
+  "name": "Boolean Legal AI Assistant",
+  "description": "An AI-powered legal assistant for Boolean Legal, providing support in venture capital, M&A, regulatory guidance, IP, virtual general counsel services, and legal tech solutions. It leverages Gemini API and web search for accurate, context-aware legal information.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
