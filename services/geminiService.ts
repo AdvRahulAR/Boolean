@@ -1,16 +1,14 @@
-
-
 import { GoogleGenAI, GenerateContentResponse, GenerateContentParameters, Tool, Part, Content } from "@google/genai";
 import { ServiceArea, LegalTask, AIResponse, GroundingChunk, QueryPayload, ChatMessage, UserQueryMessage, AIResponseMessage } from '../types';
 import { GEMINI_TEXT_MODEL } from '../constants';
 
-if (!process.env.API_KEY) {
+if (!import.meta.env.VITE_GEMINI_API_KEY) {
   console.warn(
-    "API_KEY environment variable not found. Gemini API calls will likely fail."
+    "VITE_GEMINI_API_KEY environment variable not found. Gemini API calls will likely fail."
   );
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 
 interface ChatContextPayload extends QueryPayload {
   chatHistory?: ChatMessage[];
