@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boolean Legal AI Assistant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar for webkit browsers */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e293b; /* slate-800 */
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4b5563; /* gray-600 */
+      border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280; /* gray-500 */
+    }
+
+    /* Hide scrollbar for elements with .custom-scrollbar-thin */
+    .custom-scrollbar-thin::-webkit-scrollbar {
+      display: none; /* For Webkit browsers */
+    }
+    /* For Firefox and IE/Edge */
+    .custom-scrollbar-thin {
+      scrollbar-width: none; /* For Firefox */
+      -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+    }
+
+
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      /* Subtle geometric background pattern */
+      background-color: #0f172a; /* slate-900 */
+      background-image: 
+        linear-gradient(rgba(30, 41, 59, 0.3) 0.5px, transparent 0.5px), /* slate-800 with opacity */
+        linear-gradient(90deg, rgba(30, 41, 59, 0.3) 0.5px, transparent 0.5px);
+      background-size: 20px 20px; /* Adjust size of the grid */
+    }
+    html, body, #root {
+        height: 100%;
+        min-height: 100%; 
+        overflow-x: hidden; 
+    }
+     body {
+        overflow-y: hidden; 
+    }
+
+    /* Prose adjustments for chat display */
+    .prose-invert {
+      --tw-prose-body: theme(colors.slate[200]);
+      --tw-prose-headings: theme(colors.white);
+      --tw-prose-lead: theme(colors.slate[300]);
+      --tw-prose-links: theme(colors.red[400]);
+      --tw-prose-bold: theme(colors.white);
+      --tw-prose-counters: theme(colors.slate[400]);
+      --tw-prose-bullets: theme(colors.slate[400]);
+      --tw-prose-hr: theme(colors.slate[600]);
+      --tw-prose-quotes: theme(colors.slate[100]);
+      --tw-prose-quote-borders: theme(colors.slate[600]);
+      --tw-prose-captions: theme(colors.slate[400]);
+      --tw-prose-code: theme(colors.red[300]);
+      --tw-prose-pre-code: theme(colors.red[300]);
+      --tw-prose-pre-bg: theme(colors.slate[800]); /* Ensure good contrast for code blocks */
+      --tw-prose-th-borders: theme(colors.slate[500]);
+      --tw-prose-td-borders: theme(colors.slate[600]);
+    }
+    /* Custom styling for code blocks within prose */
+    .prose :where(pre):not(:where([class~="not-prose"] *)) {
+      background-color: theme(colors.slate[800]) !important; /* Explicit pre background */
+      color: theme(colors.slate[200]) !important; /* Default text color in pre */
+      padding: 0.75em 1em !important;
+      border-radius: 0.375rem !important;
+      box-shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px 0 rgba(0,0,0,0.06) !important;
+    }
+    .prose :where(pre code):not(:where([class~="not-prose"] *)) {
+      color: theme(colors.red[300]) !important; /* Specific color for code inside pre */
+      background-color: transparent !important; /* Code inside pre shouldn't have its own bg */
+      padding: 0 !important;
+      font-weight: inherit !important;
+    }
+    .prose-sm :where(code):not(:where([class~="not-prose"] *))::before,
+    .prose-sm :where(code):not(:where([class~="not-prose"] *))::after {
+        content: ""; 
+    }
+    .prose :where(code):not(:where([class~="not-prose"] *)):not(:where(pre *)){ /* Inline code, not in pre */
+        padding: 0.1em 0.3em; 
+        border-radius: 0.25rem;
+        font-weight: 500; 
+        background-color: theme(colors.slate[700]); /* Subtle bg for inline code */
+        color: theme(colors.red[300]);
+    }
+
+    /* Custom increased paragraph spacing for AI messages */
+    .ai-message-enhanced-spacing.prose-sm p {
+      margin-top: 1.25em;
+      margin-bottom: 1.25em;
+    }
+    @media (min-width: 768px) { 
+      .ai-message-enhanced-spacing.prose-base p { 
+          margin-top: 1.5em;
+          margin-bottom: 1.5em;
+      }
+    }
+
+    /* Custom breakpoint */
+    @media (max-width: 360px) {
+      .xxs\\:hidden {
+        display: none !important;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeInSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-fade-in-slide-up {
+      animation: fadeInSlideUp 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeInScaleUp {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .animate-fade-in-scale-up {
+      animation: fadeInScaleUp 0.2s ease-out forwards;
+    }
+
+    @keyframes subtlePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .animate-subtle-pulse {
+      animation: subtlePulse 2s infinite ease-in-out;
+    }
+
+  </style>
+
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.0.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "marked": "https://esm.sh/marked@^13.0.2",
+    "pdfjs-dist": "https://esm.sh/pdfjs-dist@^4.4.168/build/pdf.mjs",
+    "pdfjs-dist/build/pdf.worker.js": "https://esm.sh/pdfjs-dist@^4.4.168/build/pdf.worker.js"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-DcHS43Ds.js"></script>
+</head>
+<body class="bg-slate-900"> <!-- Default bg, pattern will overlay -->
+  <div id="root"></div>
+</body>
+</html><link rel="stylesheet" href="index.css">
