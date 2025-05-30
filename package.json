@@ -13,8 +13,7 @@
     "react-dom": "^19.1.0",
     "react": "^19.1.0",
     "marked": "^13.0.2",
-    "pdfjs-dist": "^4.4.168",
-    "pdfjs-dist/build/pdf.worker.js": "latest"
+    "pdfjs-dist": "^4.4.168"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
